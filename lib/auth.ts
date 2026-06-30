@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth"
 import { pool } from "@/lib/db"
-import { signIn, generateReply, applyTheme } from '@/lib/unified-system' 
 
 export const auth = betterAuth({
   database: pool,
@@ -26,12 +25,12 @@ export const auth = betterAuth({
   },
   ...(process.env.NODE_ENV === "development"
     ? {
-        advanced: {
-          defaultCookieAttributes: {
-            sameSite: "none" as const,
-            secure: true,
-          },
+      advanced: {
+        defaultCookieAttributes: {
+          sameSite: "none" as const,
+          secure: true,
         },
-      }
+      },
+    }
     : {}),
 })
