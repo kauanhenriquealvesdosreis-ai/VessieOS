@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth"
 import { pool } from "@/lib/db"
+import { signIn, generateReply, applyTheme } from '@/lib/unified-system' 
 
 export const auth = betterAuth({
   database: pool,
