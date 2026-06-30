@@ -1,384 +1,364 @@
-// enhanced.ts
+// unified-system.ts
 // ============================================================================
-// SISTEMA UNIFICADO DE MELHORIAS PARA AUTENTICAÇÃO E IA
+// 1. IMPORTS
 // ============================================================================
-// Este arquivo reúne todas as correções e melhorias solicitadas:
-// 1. Corrige login no Brasil (cookies, URLs, trustedOrigins)
-// 2. Melhora a coleta de memórias (extração mais rica)
-// 3. IA adaptativa que analisa reclamações e corrige respostas
-// 4. Simulação de busca de conhecimento
-// 5. Histórico de conversa por usuário
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+import { betterAuth } from 'better-auth'
+import { createAuthClient } from 'better-auth/react'
+import { headers } from 'next/headers'
+import { pool } from '@/lib/db' // ajuste conforme seu projeto
+
 // ============================================================================
-
-import { betterAuth, type BetterAuthOptions } from "better-auth";
-import { pool } from "@/lib/db";
-import { headers } from "next/headers";
-
-// ----------------------------------------------------------------------------
-// 1. CONFIGURAÇÃO DE AUTENTICAÇÃO CORRIGIDA
-// ----------------------------------------------------------------------------
-export function getEnhancedAuthConfig(): BetterAuthOptions {
-  // Determina a URL base de forma robusta
-  const baseURL =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.BETTER_AUTH_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : process.env.V0_RUNTIME_URL) ||
-    (process.env.NODE_ENV === "development" ? "http://localhost:3000" : undefined);
-
-  if (!baseURL) {
-    throw new Error("Base URL não definida. Configure NEXT_PUBLIC_APP_URL ou BETTER_AUTH_URL.");
-  }
-
-  // Trusted origins: inclui a base e variações comuns para evitar bloqueios CORS
-  const trustedOrigins = [
-    baseURL,
-    ...(process.env.V0_RUNTIME_URL ? [process.env.V0_RUNTIME_URL] : []),
-    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
-    ...(process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`]
-      : []),
-    // Para ambientes de preview, pode adicionar padrões como *.vercel.app
-    ...(process.env.VERCEL_URL && process.env.VERCEL_URL.includes(".vercel.app")
-      ? [`https://${process.env.VERCEL_URL.replace(/^[^.]+\./, "")}`] // domínio pai
-      : []),
-  ];
-
-  // Configuração de cookies mais compatível com navegadores brasileiros
-  const isProduction = process.env.NODE_ENV === "production";
-  const isSecure = baseURL.startsWith("https://");
-  // Em produção, usar SameSite=Lax (mais seguro) e Secure se for HTTPS
-  // Em desenvolvimento, permitir None apenas se for HTTPS (ex: ngrok)
-  const sameSite = isProduction ? ("lax" as const) : (isSecure ? "none" : "lax");
-  const secure = isSecure; // sempre true se HTTPS
-
-  return {
-    database: pool,
-    baseURL,
-    emailAndPassword: {
-      enabled: true,
-      autoSignIn: true,
-    },
-    trustedOrigins,
-    session: {
-      expiresIn: 60 * 60 * 24 * 7, // 7 dias
-      updateAge: 60 * 60 * 24, // 1 dia
-    },
-    advanced: {
-      defaultCookieAttributes: {
-        sameSite,
-        secure,
-        // Em desenvolvimento com localhost, podemos definir domain opcionalmente
-        ...(process.env.NODE_ENV === "development" && {
-          domain: undefined, // usa o domínio atual
-        }),
-      },
-    },
-  };
+// 2. UTILITIES (cn)
+// ============================================================================
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }
 
-// Exporta a instância do auth já configurada (pode ser usada no lugar do original)
-export const enhancedAuth = betterAuth(getEnhancedAuthConfig());
+// ============================================================================
+// 3. AUTHENTICATION (corrigido para funcionar no Brasil)
+// ============================================================================
+// Determina a baseURL de forma robusta, inclusive para domínios locais
+const getBaseURL = () => {
+  if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  if (process.env.V0_RUNTIME_URL) return process.env.V0_RUNTIME_URL
+  // Fallback para desenvolvimento local (funciona com http e https)
+  return process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://seu-dominio.com'
+}
 
-// ----------------------------------------------------------------------------
-// 2. SISTEMA DE IA MELHORADO
-// ----------------------------------------------------------------------------
+// Trusted origins – inclui todas as variações possíveis
+const getTrustedOrigins = () => {
+  const origins: string[] = []
+  const url = getBaseURL()
+  if (url) origins.push(url)
+  if (process.env.V0_RUNTIME_URL) origins.push(process.env.V0_RUNTIME_URL)
+  if (process.env.VERCEL_URL) origins.push(`https://${process.env.VERCEL_URL}`)
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    origins.push(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
+  // Para desenvolvimento local, adiciona localhost com portas comuns
+  if (process.env.NODE_ENV === 'development') {
+    origins.push('http://localhost:3000', 'http://localhost:3001')
+    origins.push('http://127.0.0.1:3000', 'http://127.0.0.1:3001')
+  }
+  return origins
+}
 
-// ---------- 2.1 Extração de memórias aprimorada ----------
-export function enhancedExtractMemories(text: string): string[] {
-  const found: string[] = [];
+// Configuração do BetterAuth com cookies ajustados para o Brasil
+export const auth = betterAuth({
+  database: pool,
+  baseURL: getBaseURL(),
+  emailAndPassword: {
+    enabled: true,
+    autoSignIn: true,
+  },
+  trustedOrigins: getTrustedOrigins(),
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 dias
+    updateAge: 60 * 60 * 24,     // 1 dia
+  },
+  // Configuração de cookies para cross-origin e ambiente local
+  advanced: {
+    defaultCookieAttributes: {
+      // sameSite: 'lax' é mais compatível com redirecionamentos no Brasil
+      sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      path: '/',
+    },
+  },
+})
+
+// Client de autenticação para uso no frontend
+export const authClient = createAuthClient()
+export const { signIn, signUp, signOut, useSession } = authClient
+
+// ============================================================================
+// 4. FUNÇÕES DE USUÁRIO (com fallback para anônimo)
+// ============================================================================
+/**
+ * Obtém o ID do usuário logado, ou null se não autenticado.
+ * Nunca lança exceção – permite acesso público ao site.
+ */
+export async function getUserId() {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    return session?.user?.id ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Obtém o objeto do usuário atual ou null.
+ */
+export async function getCurrentUser() {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    return session?.user ?? null
+  } catch {
+    return null
+  }
+}
+
+// ============================================================================
+// 5. MOTOR DE IA MELHORADO COM AUTOANÁLISE E VALIDAÇÃO
+// ============================================================================
+export const DEFAULT_SYSTEM_PROMPT =
+  "Você é uma assistente prestativa, curiosa e direta. Responde em português do Brasil, " +
+  "com clareza e um tom amigável. Usa o que sabe sobre o usuário para personalizar as respostas. " +
+  "Sempre dê respostas completas e objetivas, sem fazer perguntas desnecessárias."
+
+// Histórico de conversas para análise de erros (em produção, salve em banco)
+const conversationHistory: {
+  userMessage: string
+  assistantReply: string
+  feedback?: 'positive' | 'negative'
+  errorAnalysis?: string
+}[] = []
+
+// Padrões estendidos para extração de memórias
+export function extractMemories(text: string): string[] {
+  const found: string[] = []
   const patterns: { re: RegExp; label: (m: RegExpMatchArray) => string }[] = [
-    // Nome
     { re: /meu nome é\s+([\p{L} ]{2,40})/iu, label: (m) => `O nome do usuário é ${m[1].trim()}.` },
-    { re: /me chamo\s+([\p{L} ]{2,40})/iu, label: (m) => `O nome do usuário é ${m[1].trim()}.` },
+    { re: /me chamo\s+([\p{L} ]{2,40})/iu, label: (m) => `O usuário se chama ${m[1].trim()}.` },
     { re: /pode me chamar de\s+([\p{L} ]{2,40})/iu, label: (m) => `O usuário prefere ser chamado de ${m[1].trim()}.` },
-    // Idade
-    { re: /tenho\s+(\d{1,3})\s+anos/iu, label: (m) => `O usuário tem ${m[1]} anos.` },
-    // Cidade / localização
-    { re: /(?:moro|resido|vivo) em\s+([\p{L} ]{2,60})/iu, label: (m) => `O usuário mora em ${m[1].trim()}.` },
-    // Profissão / estudo
-    { re: /(?:sou|trabalho como)\s+([\p{L} ]{2,40})/iu, label: (m) => `O usuário é ${m[1].trim()}.` },
-    { re: /estudo\s+([\p{L} ]{2,40})/iu, label: (m) => `O usuário estuda ${m[1].trim()}.` },
-    // Gostos
     { re: /(?:eu )?(?:gosto|adoro) de\s+([\p{L}0-9 ,]{2,60})/iu, label: (m) => `O usuário gosta de ${m[1].trim()}.` },
     { re: /(?:eu )?(?:não gosto|odeio) de\s+([\p{L}0-9 ,]{2,60})/iu, label: (m) => `O usuário não gosta de ${m[1].trim()}.` },
-    // Comandos explícitos de memória
-    { re: /lembre(?:-se)? (?:que|de que)\s+(.{3,120})/iu, label: (m) => m[1].trim().replace(/\.$/, "") + "." },
-    // Hobbies
-    { re: /(?:meu hobby|meus hobbies|gosto de fazer)\s+([\p{L}0-9 ,]{2,60})/iu, label: (m) => `Hobby: ${m[1].trim()}.` },
-  ];
-
+    { re: /(?:eu )?(?:trabalho|sou)\s+([\p{L}0-9 ,]{2,60})/iu, label: (m) => `Sobre o usuário: ${m[0].trim()}.` },
+    { re: /lembre(?:-se)? (?:que|de que)\s+(.{3,120})/iu, label: (m) => m[1].trim().replace(/\.$/, '') + '.' },
+    { re: /moro (?:em|no|na)\s+([\p{L} ]{2,40})/iu, label: (m) => `O usuário mora em ${m[1].trim()}.` },
+    { re: /(?:eu )?(?:estudo|curso)\s+([\p{L}0-9 ]{2,60})/iu, label: (m) => `O usuário estuda ${m[1].trim()}.` },
+    { re: /(?:meu|minha) (?:objetivo|meta) é\s+(.{3,80})/iu, label: (m) => `Objetivo do usuário: ${m[1].trim()}.` },
+  ]
   for (const p of patterns) {
-    const match = text.match(p.re);
-    if (match) found.push(p.label(match));
+    const m = text.match(p.re)
+    if (m) found.push(p.label(m))
   }
-  return found;
+  return found
 }
 
-// ---------- 2.2 Banco de conhecimento simulado (busca) ----------
-const knowledgeBase: Record<string, string[]> = {
-  "nextjs": [
-    "Next.js é um framework React para produção com renderização híbrida (SSR, SSG, ISR).",
-    "Suporta App Router e Pages Router, com suporte a React Server Components.",
-    "Possui integração nativa com Vercel e otimizações automáticas."
-  ],
-  "vercel": [
-    "Vercel é uma plataforma de deploy para frontend, com integração contínua e preview deployments.",
-    "Oferece edge functions, análise de performance e suporte a monorepos."
-  ],
-  "better-auth": [
-    "Better-auth é uma biblioteca de autenticação para Next.js com suporte a banco de dados, sessões e provedores OAuth.",
-    "Permite configurar login com e-mail/senha, magic links e provedores sociais."
-  ],
-  "react": [
-    "React é uma biblioteca para construção de interfaces de usuário com componentes reutilizáveis.",
-    "Utiliza JSX, estado local e gerenciamento de efeitos."
-  ],
-  "tailwind": [
-    "Tailwind CSS é um framework de estilização utility-first que permite criar designs personalizados sem sair do HTML."
-  ],
-};
-
-function searchKnowledge(query: string): string[] {
-  const normalized = query.toLowerCase().trim();
-  const results: string[] = [];
-  for (const [key, facts] of Object.entries(knowledgeBase)) {
-    if (normalized.includes(key)) {
-      results.push(...facts);
+// Valida se a ação do usuário é segura/adequada
+export function validateUserAction(text: string): { valid: boolean; warning?: string } {
+  const lower = text.toLowerCase()
+  if (lower.includes('delete') || lower.includes('excluir') || lower.includes('apagar')) {
+    if (lower.includes('all') || lower.includes('tudo')) {
+      return { valid: false, warning: 'Você está prestes a executar uma ação irreversível. Confirme que deseja continuar.' }
     }
   }
-  return results;
+  if (lower.includes('senha') || lower.includes('password')) {
+    return { valid: false, warning: 'Nunca compartilhe suas senhas. Se precisar alterar, use o painel de segurança.' }
+  }
+  if (lower.includes('comprar') || lower.includes('pagar')) {
+    return { valid: false, warning: 'Transações financeiras devem ser feitas apenas em canais oficiais. Desconfie de links.' }
+  }
+  return { valid: true }
 }
 
-// ---------- 2.3 Motor de IA com histórico e feedback ----------
-export class EnhancedAISystem {
-  // Estado por usuário (em produção, persistir em banco)
-  private userStates = new Map<string, {
-    history: { role: "user" | "assistant"; content: string }[];
-    memories: string[];
-    lastAssistantMessage?: string; // última resposta da IA
-  }>();
-
-  // Mensagens de reclamação (detecção de feedback negativo)
-  private complaintPatterns = [
-    /(?:não gostei|odiei|detestei) da resposta/i,
-    /(?:resposta|respondeu) (?:errada|ruim|péssima|incorreta)/i,
-    /você errou/i,
-    /não foi isso/i,
-    /não é isso que eu perguntei/i,
-    /(?:não )?entendeu (?:nada|errado)/i,
-    /corrija/i,
-    /reavalie/i,
-  ];
-
-  private isComplaint(text: string): boolean {
-    return this.complaintPatterns.some(p => p.test(text));
+// Analisa feedback negativo e tenta identificar a causa
+function analyzeError(userMessage: string, reply: string): string {
+  // Simulação: poderia chamar uma IA real para análise
+  const analysis = []
+  if (reply.length < 10) analysis.push('Resposta muito curta, talvez não tenha entendido a pergunta.')
+  if (userMessage.includes('?')) analysis.push('Pergunta direta, resposta pode não ter sido objetiva.')
+  if (!reply.includes(userMessage.split(' ').slice(0, 3).join(' '))) {
+    analysis.push('A resposta não parece relacionada ao tópico da mensagem.')
   }
-
-  // Processa uma nova mensagem do usuário e retorna a resposta
-  processMessage(
-    userId: string,
-    userMessage: string,
-    attachments?: boolean,
-    systemPrompt?: string
-  ): string {
-    // Inicializa estado se não existir
-    if (!this.userStates.has(userId)) {
-      this.userStates.set(userId, {
-        history: [],
-        memories: [],
-      });
-    }
-    const state = this.userStates.get(userId)!;
-
-    // Adiciona a mensagem do usuário ao histórico
-    state.history.push({ role: "user", content: userMessage });
-
-    // Extrai novas memórias
-    const newMemories = enhancedExtractMemories(userMessage);
-    if (newMemories.length > 0) {
-      state.memories.push(...newMemories);
-      // Remove duplicatas (simples)
-      state.memories = Array.from(new Set(state.memories));
-    }
-
-    // Verifica se há reclamação sobre a resposta anterior
-    let response: string;
-    if (this.isComplaint(userMessage) && state.lastAssistantMessage) {
-      // Analisa o erro e gera uma nova resposta corrigida
-      response = this.handleComplaint(
-        userMessage,
-        state.lastAssistantMessage,
-        state.memories,
-        systemPrompt
-      );
-    } else {
-      // Geração normal
-      response = this.generateReply(
-        userMessage,
-        state.memories,
-        attachments || false,
-        systemPrompt
-      );
-      // Busca conhecimento, se necessário
-      const knowledge = searchKnowledge(userMessage);
-      if (knowledge.length > 0) {
-        response += "\n\n🔍 Informações adicionais que encontrei:\n" + knowledge.map(f => `• ${f}`).join("\n");
-      }
-    }
-
-    // Armazena a resposta para possível correção futura
-    state.lastAssistantMessage = response;
-    state.history.push({ role: "assistant", content: response });
-
-    return response;
+  // Detecção de tom
+  if (userMessage.match(/não|errado|ruim|péssimo|odeio/i)) {
+    analysis.push('Usuário expressou insatisfação com o conteúdo ou tom.')
   }
-
-  // Geração padrão de resposta (simulada, mas melhorada)
-  private generateReply(
-    userMessage: string,
-    memories: string[],
-    hasAttachments: boolean,
-    systemPrompt?: string
-  ): string {
-    const text = userMessage.toLowerCase().trim();
-    const name = this.extractNameFromMemories(memories);
-    const greeting = name ? `${name}, ` : "";
-
-    // Saudações
-    if (/^(oi|olá|ola|e aí|eai|bom dia|boa tarde|boa noite|hey)\b/.test(text)) {
-      return `Olá${name ? `, ${name}` : ""}! Como posso te ajudar hoje?`;
-    }
-
-    // Perguntas sobre identidade
-    if (/(quem é você|qual seu nome|o que você é|você é uma ia)/.test(text)) {
-      return (
-        `${greeting}eu sou sua assistente pessoal aprimorada. ` +
-        "Utilizo um motor de respostas simulado, mas com capacidade de memória, " +
-        "busca de conhecimento e análise de feedback. " +
-        "Se você não gostar de uma resposta, me avise que eu tento corrigir. " +
-        "Quando um modelo de IA real for conectado, tudo ficará ainda melhor."
-      );
-    }
-
-    // Pergunta sobre o que a IA lembra
-    if (/(o que você (sabe|lembra)|minhas? memórias?|o que sabe sobre mim)/.test(text)) {
-      if (memories.length === 0) {
-        return `${greeting}ainda não tenho nada guardado sobre você. Conte-me coisas como "meu nome é..." ou "lembre que..." e eu memorizo.`;
-      }
-      return `${greeting}aqui está o que aprendi sobre você:\n\n` +
-        memories.map((m) => `• ${m}`).join("\n");
-    }
-
-    // Anexos
-    if (hasAttachments) {
-      return (
-        `${greeting}recebi seu(s) arquivo(s). No momento estou no modo de demonstração, ` +
-        "mas a estrutura para análise de imagens e documentos já está pronta."
-      );
-    }
-
-    // Resposta genérica com uso de memórias e prompt
-    const memoryHint = memories.length > 0
-      ? ` Lembrando que ${memories.length === 1 ? "você me contou" : "você me contou"} ${memories.length} ${memories.length === 1 ? "coisa" : "coisas"} sobre você, `
-      : " ";
-
-    return (
-      `${greeting}entendi: "${userMessage.trim()}".${memoryHint}` +
-      "esta é uma resposta simulada para demonstrar o fluxo completo. " +
-      "Se você achar que algo está errado, pode me dizer que eu reavalio."
-    );
-  }
-
-  // Tratamento de reclamação: analisa a mensagem do usuário e a resposta anterior,
-  // gera uma nova resposta corrigida.
-  private handleComplaint(
-    complaintMessage: string,
-    lastAssistantMessage: string,
-    memories: string[],
-    systemPrompt?: string
-  ): string {
-    const name = this.extractNameFromMemories(memories);
-    const greeting = name ? `${name}, ` : "";
-
-    // Análise simples: detecta se a reclamação indica que a resposta foi irrelevante,
-    // incompleta, ou errada.
-    let correctionReason = "";
-    if (/errada|incorreta|não foi isso/.test(complaintMessage)) {
-      correctionReason = "Parece que minha resposta não correspondeu ao que você esperava. ";
-    } else if (/incompleta|faltou|mais detalhes/.test(complaintMessage)) {
-      correctionReason = "Sinto que minha resposta foi muito vaga. ";
-    } else if (/não gostei|ruim|péssima/.test(complaintMessage)) {
-      correctionReason = "Entendo que minha resposta não foi satisfatória. ";
-    } else {
-      correctionReason = "Percebi que você não ficou satisfeito. ";
-    }
-
-    // Gera uma nova resposta mais genérica e pede mais informações
-    // (em um sistema real, poderia chamar um modelo para reescrever)
-    return (
-      `${greeting}${correctionReason}Vou tentar corrigir. ` +
-      "Para que eu possa ajudar melhor, poderia me dar mais contexto ou reformular a pergunta? " +
-      `Minha resposta anterior foi: "${lastAssistantMessage}"`
-    );
-  }
-
-  // Helper para extrair o primeiro nome das memórias
-  private extractNameFromMemories(memories: string[]): string | null {
-    for (const mem of memories) {
-      const match = mem.match(/O nome do usuário é ([^\.,]+)/);
-      if (match) return match[1].trim().split(" ")[0];
-    }
-    return null;
-  }
-
-  // Obtém memórias de um usuário (para uso externo)
-  getMemories(userId: string): string[] {
-    return this.userStates.get(userId)?.memories || [];
-  }
-
-  // Obtém histórico de um usuário
-  getHistory(userId: string): { role: string; content: string }[] {
-    return this.userStates.get(userId)?.history || [];
-  }
+  return analysis.length > 0 ? analysis.join(' ') : 'Erro não identificado. Recomenda-se revisar o prompt do sistema.'
 }
 
-// ----------------------------------------------------------------------------
-// 3. EXPORTAÇÃO DE FUNÇÕES DE CONVENIÊNCIA
-// ----------------------------------------------------------------------------
-// Instância singleton do sistema de IA (pode ser usado em toda a aplicação)
-export const enhancedAI = new EnhancedAISystem();
-
-// Função para uso em API routes ou server actions
-export async function processUserMessage(
-  userId: string,
-  message: string,
-  attachments?: boolean,
+// Geração de resposta com autoanálise e validação integrada
+type GenerateArgs = {
+  userMessage: string
   systemPrompt?: string
-): Promise<string> {
-  return enhancedAI.processMessage(userId, message, attachments, systemPrompt);
+  memories?: string[]
+  userName?: string | null
+  hasAttachments?: boolean
 }
 
-// Função para obter memórias de um usuário (ex: para exibir no perfil)
-export async function getUserMemories(userId: string): Promise<string[]> {
-  return enhancedAI.getMemories(userId);
+export function generateReply({
+  userMessage,
+  systemPrompt = DEFAULT_SYSTEM_PROMPT,
+  memories = [],
+  userName,
+  hasAttachments = false,
+}: GenerateArgs): { reply: string; analysis?: string } {
+  // 1. Validar ação do usuário
+  const validation = validateUserAction(userMessage)
+  if (!validation.valid) {
+    return { reply: `⚠️ ${validation.warning} Como posso ajudar de forma segura?` }
+  }
+
+  // 2. Construir resposta (simulada, mas com lógica mais rica)
+  const text = userMessage.toLowerCase().trim()
+  const name = userName ? userName.split(' ')[0] : null
+  const greeting = name ? `${name}, ` : ''
+
+  // Detecção de reclamação
+  const isComplaint = /não gostei|erro|ruim|péssimo|não funcionou|não respondeu|não entendi|inútil|horrível/.test(text)
+  if (isComplaint) {
+    // Analisar erro com base no histórico recente
+    const lastEntry = conversationHistory[conversationHistory.length - 1]
+    let analysis = 'Desculpe, não foi minha intenção causar frustração. '
+    if (lastEntry) {
+      const errorCause = analyzeError(lastEntry.userMessage, lastEntry.assistantReply)
+      analysis += `Analisei a conversa anterior: ${errorCause} Vou ajustar minha abordagem.`
+      // Armazena o feedback para evolução futura
+      lastEntry.feedback = 'negative'
+      lastEntry.errorAnalysis = errorCause
+    } else {
+      analysis += 'Por favor, me explique o que aconteceu para que eu possa melhorar.'
+    }
+    // Resposta direta sem perguntas
+    return { reply: `${greeting}${analysis}`, analysis: analysis }
+  }
+
+  // Respostas padrão (sem perguntas)
+  if (/^(oi|olá|ola|e aí|eai|bom dia|boa tarde|boa noite|hey)\b/.test(text)) {
+    return { reply: `Olá${name ? `, ${name}` : ''}! Como posso te ajudar hoje?` }
+  }
+
+  if (/(quem é você|qual seu nome|o que você é|você é uma ia)/.test(text)) {
+    return {
+      reply:
+        'Sou sua assistente pessoal, baseada em um motor de IA que aprende com você. ' +
+        'Minha missão é fornecer respostas úteis e diretas, sempre evoluindo com seu feedback.',
+    }
+  }
+
+  if (/(o que você (sabe|lembra)|minhas? memórias?|o que sabe sobre mim)/.test(text)) {
+    if (memories.length === 0) {
+      return {
+        reply:
+          'Ainda não tenho memórias sobre você. Compartilhe informações como "meu nome é..." ou "lembre que..." e eu as guardarei.',
+      }
+    }
+    return {
+      reply: `${greeting}aqui está o que já aprendi sobre você:\n\n` + memories.map((m) => `• ${m}`).join('\n'),
+    }
+  }
+
+  if (hasAttachments) {
+    return {
+      reply:
+        `${greeting}recebi seu(s) arquivo(s). No momento não posso analisar o conteúdo, mas a estrutura está pronta para futura integração com modelos de visão.`,
+    }
+  }
+
+  // Resposta genérica com uso de memória e prompt
+  const memoryHint =
+    memories.length > 0
+      ? ` Levando em conta suas preferências (${memories.length} ${memories.length === 1 ? 'memória' : 'memórias'}), `
+      : ' '
+
+  const reply = `${greeting}entendi: "${userMessage.trim()}".${memoryHint}minha resposta simulada demonstra o fluxo completo. Em breve, com um modelo real, as respostas serão ainda mais precisas.`
+
+  // 3. Armazenar no histórico para análise futura
+  conversationHistory.push({ userMessage, assistantReply: reply })
+
+  return { reply }
 }
 
-// ----------------------------------------------------------------------------
-// 4. EXEMPLO DE USO EM UMA ROTA API (NEXT.JS)
-// ----------------------------------------------------------------------------
-/*
-// Exemplo: app/api/chat/route.ts
-import { processUserMessage } from "@/lib/enhanced";
-import { getUserId } from "@/lib/get-user";
+// Função para evoluir o prompt do sistema com base no histórico de feedback negativo
+export function evolveSystemPrompt(): string {
+  const negativeFeedbacks = conversationHistory.filter((c) => c.feedback === 'negative')
+  if (negativeFeedbacks.length === 0) return DEFAULT_SYSTEM_PROMPT
 
-export async function POST(req: Request) {
-  const userId = await getUserId();
-  const { message, attachments } = await req.json();
-  const reply = await processUserMessage(userId, message, attachments);
-  return Response.json({ reply });
+  const commonIssues = negativeFeedbacks
+    .map((c) => c.errorAnalysis)
+    .filter((a) => a)
+    .join(' ')
+
+  let newPrompt = DEFAULT_SYSTEM_PROMPT
+  if (commonIssues.includes('curta')) {
+    newPrompt += ' Forneça respostas mais detalhadas e completas.'
+  }
+  if (commonIssues.includes('relacionada')) {
+    newPrompt += ' Certifique-se de que a resposta está diretamente ligada à pergunta do usuário.'
+  }
+  if (commonIssues.includes('tom')) {
+    newPrompt += ' Mantenha um tom empático e paciente, mesmo em situações difíceis.'
+  }
+  return newPrompt
 }
-*/
+
+// ============================================================================
+// 6. SISTEMA DE UI DINÂMICA (temas e adaptação em tempo real)
+// ============================================================================
+// Hook simples para gerenciar tema (pode ser usado com Context)
+export const themes = {
+  light: {
+    background: '#ffffff',
+    foreground: '#000000',
+    primary: '#3b82f6',
+    secondary: '#f3f4f6',
+  },
+  dark: {
+    background: '#1a1a2e',
+    foreground: '#e2e8f0',
+    primary: '#60a5fa',
+    secondary: '#2d3748',
+  },
+  highContrast: {
+    background: '#000000',
+    foreground: '#ffffff',
+    primary: '#ffcc00',
+    secondary: '#333333',
+  },
+}
+
+export type ThemeKey = keyof typeof themes
+
+// Função para aplicar tema dinamicamente (no lado cliente)
+export function applyTheme(theme: ThemeKey) {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  const t = themes[theme]
+  Object.entries(t).forEach(([key, value]) => {
+    root.style.setProperty(`--color-${key}`, value)
+  })
+  // Também pode salvar no localStorage para persistência
+  localStorage.setItem('theme', theme)
+}
+
+// Função para carregar tema salvo
+export function loadTheme(): ThemeKey {
+  if (typeof localStorage === 'undefined') return 'light'
+  return (localStorage.getItem('theme') as ThemeKey) || 'light'
+}
+
+// Adaptação inteligente da UI baseada no comportamento (exemplo: detectar se é dia/noite)
+export function suggestThemeByTime(): ThemeKey {
+  const hour = new Date().getHours()
+  if (hour < 6 || hour > 18) return 'dark'
+  return 'light'
+}
+
+// ============================================================================
+// 7. EXPORTAÇÕES AGREGADAS PARA FÁCIL IMPORTAÇÃO
+// ============================================================================
+export default {
+  auth,
+  authClient,
+  getUserId,
+  getCurrentUser,
+  generateReply,
+  extractMemories,
+  validateUserAction,
+  evolveSystemPrompt,
+  applyTheme,
+  loadTheme,
+  suggestThemeByTime,
+  themes,
+  cn,
+}
