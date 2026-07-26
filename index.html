@@ -452,8 +452,8 @@ img{-webkit-user-drag:none}
 .mc-vol input{flex:1;height:3px;accent-color:var(--a)}
 
 /* EASTER EGG */
-#eg{position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:5000;cursor:pointer}
-#eg img{max-width:80vw;max-height:80vh;border-radius:var(--r-xl);box-shadow:0 0 80px var(--a)}
+#eg{position:fixed;inset:0;background:rgba(0,0,0,.854353);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:5000;cursor:pointer}
+#eg img{max-width:80vw;max-height:80vh;border-radius:var(--r-xl);box-shadow:0 0 700px var(--a)}
 
 /* ===== EDU / AUTOMATION / UX ===== */
 .sm-hero{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(135deg,rgba(96,165,250,.16),rgba(167,139,250,.12));margin-bottom:16px}
@@ -488,7 +488,7 @@ img{-webkit-user-drag:none}
 <!-- BOOT -->
 <div id="boot">
   <div class="boot-logo">VessieOS</div>
-  <div class="boot-sub">Sistema de nova geração · v3.0</div>
+  <div class="boot-sub">VessieOS Version 1.0.3 *</div>
   <div class="boot-spin"></div>
 </div>
 
@@ -499,12 +499,12 @@ img{-webkit-user-drag:none}
     <h2>Bem-vinda ao VessieOS!</h2>
     <p style="color:#7888aa;font-size:.88rem;margin-bottom:16px">Por favor, leia os termos antes de continuar</p>
     <ul>
-      <li>Este é um sistema simulado para entretenimento e uso educacional.</li>
-      <li>Seus dados <strong>não são salvos</strong> em servidores externos.</li>
-      <li>A IA Vessie usa a API Anthropic (chave necessária para funcionar).</li>
-      <li>Desenvolvido com 💜 usando tecnologias web modernas.</li>
+      <li>Este é um projeto feito com uma coca cola e uma coxinha.</li>
+      <li>Seus dados <strong> não são salvos</strong> em servidores externos.</li>
+      <li>Detectamos uma atividade suspeita entre nosso sistema por favor não fica tentando adivinhar o código ta bom so não mexe endendeu, Existe coisas nesse sistema que não deve ser descoberto endende né.</li>
+      <li>Seja Bem vindo é serio não tenta foi o meu ultimo avisos Pode continhuar ASS: Vessie.</li>
     </ul>
-    <button class="btn-p" id="btn-accept" style="margin-top:24px">Aceitar e Entrar ✨</button>
+    <button class="btn-p" id="btn-accept" style="margin-top:24px">Corcordo e entrar✨</button>
   </div>
 </div>
 
@@ -618,7 +618,7 @@ img{-webkit-user-drag:none}
 <div id="toasts"></div>
 
 <!-- EASTER EGG -->
-<div id="eg"><img src="https://media1.tenor.com/m/wRwerbndgV8AAAAC/micheal.gif" alt="🎉"></div>
+<div id="eg">  <img src="https://media1.tenor.com/m/wRwerbndgV8AAAAC/micheal.gif" alt="🎉">
 
 <script>
 (function(){"use strict";
@@ -653,7 +653,7 @@ EXTRA_STYLE.textContent=`
 document.head.appendChild(EXTRA_STYLE);
 
 const S={
-  user:'Visitante',
+  user:'Avançado',
   apiKey:'',
   wallpaper:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80',
   desktopIconSize:'medium',
@@ -661,7 +661,7 @@ const S={
   wallpapers:[],
   wins:[],
   nextZ:100,
-  unlocked:false,
+  unlocked:true,
   chatHistory:[],
   volume:70,
   darkMode:true,
@@ -701,24 +701,13 @@ const S={
 // TODOS os wallpapers abaixo aparecem PERMANENTEMENTE na tela de configurações
 // Você também pode adicionar URLs personalizadas pela interface em tempo real
 const WALLS=[
-  {n:'Aurora Nights',u:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80',c:'Natureza'},
-  {n:'Sunset Peaks',u:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80',c:'Natureza'},
-  {n:'Neon City',u:'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1600&q=80',c:'Tech'},
-  {n:'Forest Mist',u:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80',c:'Natureza'},
-  {n:'Ocean Horizon',u:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80',c:'Natureza'},
-  {n:'Galaxy Deep',u:'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1600&q=80',c:'Futurista'},
-  {n:'Aurora Glow',u:'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80',c:'Futurista'},
-  {n:'City Lights',u:'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1600&q=80',c:'Tech'},
-  {n:'Cherry Bloom',u:'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1600&q=80',c:'Natureza'},
-  {n:'Cyberpunk Skyline',u:'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1600&q=80',c:'Tech'},
-  {n:'Desert Dunes',u:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80',c:'Futurista'},
-  {n:'Mountain Mist',u:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=80',c:'Natureza'},
-  {n:'Polar Night',u:'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1600&q=80',c:'Futurista'},
-  {n:'Solar Horizon',u:'https://images.unsplash.com/photo-1500989145603-8e7ef71d639e?auto=format&fit=crop&w=1600&q=80',c:'Futurista'},
-  {n:'Blue Neon Grid',u:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80',c:'Tech'},
-  {n:'Cosmic Rain',u:'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=1600&q=80',c:'Futurista'},
-  {n:'Digital Wave',u:'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1600&q=80',c:'Tech'},
-  {n:'Midnight Lake',u:'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80',c:'Natureza'}
+  {n:'StelleFly Honkai',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26880.jpg',c:'StelleFly Honkai'},
+  {n:'Solo Leveling',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26864.jpg',c:'Solo Leveling'},
+  {n:'Godzilla Minus Zero 2026',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26852.jpg',c:'Godzilla Minus Zero 2026'},
+  {n:'BMW S 1000',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26835.jpg',c:'BMW S 1000'},
+  {n:'Grand Theft Auto VI Ultimate Edition',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26757.jpg',c:'Grand Theft Auto VI Ultimate Edition'},
+  {n:'Neon-Share',u:'https://i.giphy.com/KWcGnX2iz0G1fMMHrO.webp',c:'Neon-Share'},
+  {n:'Cyberpunk 2077',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26756.jpg',c:'Cyberpunk 2077'}
 ];
 
 function ensureWallpapers(list){
@@ -910,11 +899,18 @@ function playSound(kind='notify'){
 }
 
 GAMES=[ 
+  {n:'Village Craft',u:'https://1v1-lol.gitlab.io/go/class-389.html',ic:'https://jamestore214.github.io/img/class-389.png'},
+  {n:'Shady Bears',u:'https://1v1-lol.gitlab.io/go/class-379.html',ic:'https://jamestore214.github.io/img/class-379.png'},
+  {n:'Bitlife',u:'https://1v1-lol.gitlab.io/go/class-441.html',ic:'https://jamestore214.github.io/img/class-441.png'},
+  {n:'Moto X3m Pool Party',u:'https://1v1-lol.gitlab.io/go/class-462.html',ic:'https://jamestore214.github.io/img/class-462.png'},
   {n:'Minecraft',u:'https://play1.mc.js.cool/1.8',ic:'https://www.rw-designer.com/icon-image/5547-256x256x32.png'},
-  {n:'Math Playground',u:'https://www.mathplayground.com/',ic:'https://www.mathplayground.com/favicon.ico'},
-  {n:'ABCya',u:'https://www.abcya.com/',ic:'https://www.abcya.com/favicon.ico'},
-  {n:'Code.org',u:'https://code.org/',ic:'https://code.org/favicon.ico'},
-  {n:'Scratch',u:'https://scratch.mit.edu/',ic:'https://scratch.mit.edu/favicon.ico'},
+  {n:'Parking Fury 3D: Night Thief',u:'https://1v1-lol.gitlab.io/go/class-725.html',ic:'https://jamestore214.github.io/img/class-725.png'},
+  {n:'Idle Startup Tycoon',u:'https://1v1-lol.gitlab.io/go/class-778.html',ic:'https://jamestore214.github.io/img/class-778.png'},
+  {n:'Exemple',u:'Exemple',ic:'Exemple'},
+  {n:'Rocket Soccer Derby',u:'https://1v1-lol.gitlab.io/go/class-527.html',ic:'https://jamestore214.github.io/img/class-527.png'},
+  {n:'IZOWAVE',u:'https://1v1-lol.gitlab.io/go/class-325.html',ic:'https://jamestore214.github.io/img/class-325.png'},
+  {n:'Rock Paper Clicker',u:'https://1v1-lol.gitlab.io/go/class-1127.html',ic:'https://jamestore214.github.io/img/class-1127.png'},
+  {n:'Tiger Simulator 3d',u:'https://1v1-lol.gitlab.io/go/class-587.html',ic:'https://jamestore214.github.io/img/class-587.png'},
   {n:'Crazy Taxi',u:'https://snowriderio.io/crazy-taxi',ic:'https://snowriderio.io/cache/data/image/game/crazy-taxi-1-h220x220.webp'},
   {n:'Az Games',u:'https://azgames.io/',ic:'https://azgames.io/favicon.ico'},
   {n:'Bacon May Die',u:'https://1v1-lol.gitlab.io/go/class-334.html',ic:'https://jamestore214.github.io/img/class-334.png'},
@@ -1038,6 +1034,10 @@ GAMES=[
   {n:'Crash Bandicoot 3',u:'https://classicgamezone.com/pt/games/crash-bandicoot-3-warped',ic:'https://classicgamezone.com/games/covers/ps/crash-bandicoot-3-warped.webp'},
   {n:'Fnaf Game',u:'https://fnafgame.io/',ic:'chrome://favicon2/?size=24&scaleFactor=1x&showFallbackMonogram=&pageUrl=https%3A%2F%2Ffnafgame.io%2F'},
   {n:'Crash Team Racing',u:'https://classicgamezone.com/pt/games/crash-team-racing',ic:'https://classicgamezone.com/games/covers/ps/crash-team-racing.webp'},
+  {n:'Thumb Fighter',u:'https://1v1-lol.gitlab.io/go/class-644.html',ic:'https://jamestore214.github.io/img/class-644.png'},
+  {n:'Horror Nights Story',u:'https://1v1-lol.gitlab.io/go/class-1023.html',ic:'https://jamestore214.github.io/img/class-1023.png'},
+  {n:'Zombie Dying Survival Days',u:'https://1v1-lol.gitlab.io/go/class-1078.html',ic:'https://jamestore214.github.io/img/class-1078.png'},
+  {n:'Gunspin',u:'https://1v1-lol.gitlab.io/go/class-533.html',ic:'https://jamestore214.github.io/img/class-533.png'},
   {n:'Basket Random',u:'https://1v1-lol.gitlab.io/go/class-436.html',ic:'https://jamestore214.github.io/img/class-436.png'}
 ];
 
