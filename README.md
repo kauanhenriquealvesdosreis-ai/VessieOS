@@ -1,0 +1,1 @@
+Estou criando um sistema operacional completo de uma forma mais administrativa e facil para iniciantes aonde comtem descrições pelo script para ajudar e códigos facilitados para voces utilizarem para criar
