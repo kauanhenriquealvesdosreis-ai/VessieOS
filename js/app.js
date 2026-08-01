@@ -2791,7 +2791,7 @@ document.addEventListener('keydown',e=>{
   // re-render after a tick to apply if desktop is already shown
   setTimeout(()=>{ if(document.getElementById('desktop').style.display!=='none') renderDesktop(); }, 200);
 
-  console.log('%c💜 VessieOS Ultra v4.0 loaded','background:linear-gradient(90deg,#c46fff,#7a3eb8);color:#fff;padding:6px 14px;border-radius:6px;font-weight:bold');
+  console.log('%c✨ VessieOS Ultra v4.0 loaded','background:linear-gradient(90deg,#c46fff,#7a3eb8);color:#fff;padding:6px 14px;border-radius:6px;font-weight:bold');
 })();
 
 /* ============================================================
