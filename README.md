@@ -36,5 +36,5 @@ Conhecimento básico de C e Assembly (mas o código é bem explicado!)
 Clone o repositório
 
 bash
-git clone https://github.com/seu-usuario/vessieos.git
+git clone https://github.com/kauanhenriquealvesdosreis-ai/VessieOS
 cd vessieos
