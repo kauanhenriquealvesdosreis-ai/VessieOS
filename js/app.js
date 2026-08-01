@@ -245,8 +245,186 @@ window.importVessieData=function(file){
   reader.readAsText(file);
 };
 
-window.openVessieTraining=function(){};
-window.trainVessieVocabulary=function(){};
+// Função de treinamento da VessieAI - Implementação corrigida
+window.openVessieTraining = function() {
+  const trainingWin = WindowManager.create({
+    title: 'Treinar VessieAI',
+    content: `
+      <div style="padding:20px;color:var(--text);font-family:'Inter',sans-serif;">
+        <h3 style="margin-bottom:16px;color:var(--a);">🧠 Treinamento da VessieAI</h3>
+        <p style="color:var(--dim);margin-bottom:20px;">Adicione frases e respostas personalizadas para a Vessie!</p>
+        
+        <div style="margin-bottom:16px;">
+          <label style="display:block;margin-bottom:8px;font-size:0.85rem;color:var(--text-2);">Frase/Padrão:</label>
+          <input type="text" id="train-pattern" placeholder="Ex: bom dia, olá, oi..." 
+                 style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text);">
+        </div>
+        
+        <div style="margin-bottom:16px;">
+          <label style="display:block;margin-bottom:8px;font-size:0.85rem;color:var(--text-2);">Resposta da Vessie:</label>
+          <textarea id="train-response" placeholder="Ex: Bom dia, lindeza! 💜 Que seu dia seja maravilhoso!" 
+                    rows="3" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text);resize:vertical;"></textarea>
+        </div>
+        
+        <button onclick="VessieAITraining.addPhrase()" 
+                style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;color:white;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;width:100%;">
+          <i class="fas fa-plus"></i> Adicionar Frase
+        </button>
+        
+        <div style="margin-top:24px;">
+          <h4 style="margin-bottom:12px;font-size:0.9rem;color:var(--text-2);">Frases Treinadas (${(S.vocabulary||[]).length})</h4>
+          <div id="trained-phrases-list" style="max-height:200px;overflow-y:auto;">
+            ${(S.vocabulary||[]).map((item, i) => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:8px;">
+                <div>
+                  <div style="font-size:0.85rem;color:var(--a);">${item.pattern}</div>
+                  <div style="font-size:0.75rem;color:var(--dim);">${item.response.substring(0, 50)}...</div>
+                </div>
+                <button onclick="VessieAITraining.removePhrase(${i})" 
+                        style="background:rgba(239,68,68,0.2);border:none;color:#ef4444;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            `).join('') || '<div style="color:var(--dim);font-size:0.85rem;">Nenhuma frase treinada ainda.</div>'}
+          </div>
+        </div>
+        
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.05);">
+          <button onclick="VessieAITraining.exportData()" 
+                  style="background:rgba(255,255,255,0.1);border:none;color:var(--text);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;margin-right:8px;">
+            <i class="fas fa-download"></i> Exportar
+          </button>
+          <button onclick="document.getElementById('train-import-file').click()" 
+                  style="background:rgba(255,255,255,0.1);border:none;color:var(--text);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;">
+            <i class="fas fa-upload"></i> Importar
+          </button>
+          <input type="file" id="train-import-file" accept=".json" style="display:none;" onchange="VessieAITraining.importData(this)">
+        </div>
+      </div>
+    `,
+    width: 500,
+    height: 600
+  });
+};
+
+// Módulo de treinamento da VessieAI
+window.VessieAITraining = {
+  addPhrase: function() {
+    const patternInput = document.getElementById('train-pattern');
+    const responseInput = document.getElementById('train-response');
+    
+    if (!patternInput || !responseInput) return;
+    
+    const pattern = patternInput.value.trim().toLowerCase();
+    const response = responseInput.value.trim();
+    
+    if (!pattern || !response) {
+      toast('Preencha todos os campos!', 'error');
+      return;
+    }
+    
+    if (!S.vocabulary) S.vocabulary = [];
+    
+    S.vocabulary.push({ pattern, response });
+    persistState();
+    
+    patternInput.value = '';
+    responseInput.value = '';
+    
+    toast('Frase adicionada com sucesso! 💜', 'success');
+    
+    // Atualizar lista
+    const listEl = document.getElementById('trained-phrases-list');
+    if (listEl) {
+      listEl.innerHTML = S.vocabulary.map((item, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:8px;">
+          <div>
+            <div style="font-size:0.85rem;color:var(--a);">${item.pattern}</div>
+            <div style="font-size:0.75rem;color:var(--dim);">${item.response.substring(0, 50)}...</div>
+          </div>
+          <button onclick="VessieAITraining.removePhrase(${i})" 
+                  style="background:rgba(239,68,68,0.2);border:none;color:#ef4444;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `).join('') || '<div style="color:var(--dim);font-size:0.85rem;">Nenhuma frase treinada ainda.</div>';
+    }
+  },
+  
+  removePhrase: function(index) {
+    if (S.vocabulary && S.vocabulary[index]) {
+      S.vocabulary.splice(index, 1);
+      persistState();
+      toast('Frase removida!', 'default');
+      
+      // Atualizar lista
+      const listEl = document.getElementById('trained-phrases-list');
+      if (listEl) {
+        listEl.innerHTML = S.vocabulary.map((item, i) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:8px;">
+            <div>
+              <div style="font-size:0.85rem;color:var(--a);">${item.pattern}</div>
+              <div style="font-size:0.75rem;color:var(--dim);">${item.response.substring(0, 50)}...</div>
+            </div>
+            <button onclick="VessieAITraining.removePhrase(${i})" 
+                    style="background:rgba(239,68,68,0.2);border:none;color:#ef4444;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `).join('') || '<div style="color:var(--dim);font-size:0.85rem;">Nenhuma frase treinada ainda.</div>';
+      }
+    }
+  },
+  
+  exportData: function() {
+    const data = { vocabulary: S.vocabulary || [] };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vessie-training.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Dados exportados! 📦', 'success');
+  },
+  
+  importData: function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.vocabulary && Array.isArray(data.vocabulary)) {
+          S.vocabulary = [...(S.vocabulary || []), ...data.vocabulary];
+          persistState();
+          toast('Dados importados com sucesso! ✅', 'success');
+          
+          // Recarregar janela se existir
+          const listEl = document.getElementById('trained-phrases-list');
+          if (listEl) {
+            listEl.innerHTML = S.vocabulary.map((item, i) => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:8px;">
+                <div>
+                  <div style="font-size:0.85rem;color:var(--a);">${item.pattern}</div>
+                  <div style="font-size:0.75rem;color:var(--dim);">${item.response.substring(0, 50)}...</div>
+                </div>
+                <button onclick="VessieAITraining.removePhrase(${i})" 
+                        style="background:rgba(239,68,68,0.2);border:none;color:#ef4444;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        toast('Erro ao importar arquivo!', 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+};
 
 let soundCtx=null;
 function getSoundContext(){

@@ -1,12 +1,1 @@
-```
-# Dependencies
-node_modules/
-
-# Editors
-.vscode/
-
-# Environment
-.env
-.env.local
-.env.*
-```
+Nothing should be ignored in this case, as the changes only include JavaScript source files and HTML/markdown configuration files without any build artifacts, dependencies, or temporary files.
