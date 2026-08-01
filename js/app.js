@@ -1153,7 +1153,13 @@ window.filterTable=function(q){
 // ============================================================
 //  FILE EXPLORER
 // ============================================================
-function openExplorer(){
+function openExplorer(path = 'Desktop'){
+  // Usa o novo ExplorerApp se disponível, senão usa a implementação antiga
+  if(typeof ExplorerApp !== 'undefined'){
+    ExplorerApp.createExplorerWindow(path);
+    return null;
+  }
+  
   const win=createWin('Explorador de Arquivos','📁',`
     <div class="fexp">
       <div class="fesb">
