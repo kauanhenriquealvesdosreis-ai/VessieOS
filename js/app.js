@@ -64,19 +64,6 @@ const S={
   musTimer:null
 };
 
-// WALLPAPERS PRÉ-DEFINIDOS
-// ======================
-// Para adicionar novos wallpapers, insira uma nova linha com este formato:
-// {n:'Nome do Wallpaper', u:'URL da imagem', c:'Categoria'}
-// 
-// Categorias disponíveis: 'Natureza', 'Tech', 'Futurista'
-// URL: Use links diretos de imagens (JPG, PNG, WEBP)
-// 
-// Exemplo:
-// {n:'Meu Wallpaper',u:'https://exemplo.com/imagem.jpg',c:'Natureza'}
-//
-// TODOS os wallpapers abaixo aparecem PERMANENTEMENTE na tela de configurações
-// Você também pode adicionar URLs personalizadas pela interface em tempo real
 const WALLS=[
   {n:'StelleFly Honkai',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26880.jpg',c:'StelleFly Honkai'},
   {n:'Solo Leveling',u:'https://4kwallpapers.com/images/walls/thumbs_2t/26864.jpg',c:'Solo Leveling'},
@@ -157,8 +144,6 @@ function dedupeGames(list){
 }
 
 function buildVessiePhrases(){
-  // FRASES NATURAIS DA VESSIE - Personalize aqui!
-  // Adicione mais respostas para diferentes contextos
   const responses={
     'help|ajuda|socorro|sos':['Claro, estou aqui! 💜 O que você precisa?','Como posso ajudar você hoje?','Estou pronta! Qual é sua dúvida?'],
     'oi|olá|hey':['Oi! 💜 Tudo bem com você?','Olá! Bem-vindo! ✨','E aí! Como vai?'],
@@ -460,9 +445,6 @@ Personalidade:
 
 Responda sempre em português brasileiro, de forma fofa e carismática!`;
 
-// ============================================================
-//  BOOT FLOW
-// ============================================================
 setTimeout(()=>{
   const boot=document.getElementById('boot');
   boot.style.opacity='0';
@@ -517,9 +499,6 @@ function loginFn(){
   },600);
 }
 
-// ============================================================
-//  CLOCK
-// ============================================================
 function updateClock(){
   const now=new Date();
   const t=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -571,9 +550,6 @@ document.querySelectorAll('[data-qt]').forEach(qt=>{
   };
 });
 
-// ============================================================
-//  DESKTOP RENDER
-// ============================================================
 function renderDesktop(){
   const area=document.getElementById('icons-area');
   area.innerHTML='';
@@ -593,7 +569,6 @@ function renderDesktop(){
     {id:'camera',    n:'Câmera',      ic:'fas fa-camera',        bg:'linear-gradient(135deg,#ff6e7f,#bfe9ff)'},
     {id:'word',      n:'Editor',      ic:'fas fa-pen-to-square', bg:'linear-gradient(135deg,#2193b0,#6dd5ed)'}
   ];
-  // Auto-layout responsivo: colunas baseadas na altura disponível
   const cellW=100, cellH=110, pad=20;
   const availH=Math.max(300, (area.clientHeight||window.innerHeight-52)-pad);
   const rows=Math.max(3, Math.floor(availH/cellH));
@@ -627,9 +602,6 @@ function makeDraggableIcon(el){
   });
 }
 
-// ============================================================
-//  START MENU
-// ============================================================
 function renderStartMenu(){
   const grid=document.getElementById('sm-grid');
   const panel=document.getElementById('sm');
@@ -678,9 +650,6 @@ document.addEventListener('click',e=>{
   if(!sm.contains(e.target)&&e.target.id!=='tb-start')sm.style.display='none';
 });
 
-// ============================================================
-//  WINDOW SYSTEM
-// ============================================================
 let winCount=0;
 
 function createWin(title,iconChar,content,w=700,h=500){
@@ -795,11 +764,6 @@ window.addEventListener('resize',()=>{
   },120);
 });
 
-
-
-// ============================================================
-//  OPEN APP
-// ============================================================
 function openApp(id){
   const existing=document.querySelector(`.win[data-app="${id}"]`);
   if(existing){focusWin(existing.id);return;}
@@ -827,9 +791,6 @@ function openApp(id){
   if(win)win.dataset.app=id;
 }
 
-// ============================================================
-//  VESSIE AI
-// ============================================================
 function openVessie(){
   const win=createWin('Vessie IA','💜',`
     <div class="chat-wrap">
@@ -942,9 +903,6 @@ function escHtml(s){
 
 document.getElementById('eg').onclick=()=>document.getElementById('eg').style.display='none';
 
-// ============================================================
-//  EDUCATION
-// ============================================================
 const EDU_TOPICS=[
   {title:'Matemática',icon:'➗',desc:'Frações, porcentagem e raciocínio rápido',prompt:'Quanto é 25% de 240?',answer:'60',tip:'25% é a mesma coisa que um quarto.'},
   {title:'Programação',icon:'💻',desc:'Lógica e estrutura de comandos',prompt:'Qual palavra-chave define uma função em JavaScript?',answer:'function',tip:'Uma função organiza ações em blocos reutilizáveis.'},
@@ -1007,9 +965,6 @@ window.checkEduAnswer=function(){
   if(ok)toast('Resposta correta! 🌟','success');
 };
 
-// ============================================================
-//  AUTOMATION
-// ============================================================
 function openAutomation(){
   const win=createWin('Automação','🤖',`
     <div class="auto-shell">
@@ -1079,9 +1034,6 @@ window.runAutoReport=function(){
   toast('Relatório atualizado 📈','success');
 };
 
-// ============================================================
-//  DASHBOARD
-// ============================================================
 function openDashboard(){
   const win=createWin('Dashboard','📊',`
     <div class="dash" id="dash-main">
@@ -1150,9 +1102,6 @@ window.filterTable=function(q){
   document.querySelectorAll('#d-tbody tr').forEach(tr=>{tr.style.display=tr.cells[0].textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});
 };
 
-// ============================================================
-//  FILE EXPLORER
-// ============================================================
 function openExplorer(){
   const win=createWin('Explorador de Arquivos','📁',`
     <div class="fexp">
@@ -1273,10 +1222,6 @@ function openNvidia(){
   `,880,620);
 }
 
-// ============================================================
-//  STEAM (ex Game Hub)
-// ============================================================
-// Biblioteca persistente em localStorage. Usa GAMES como lista base.
 const STEAM_KEY='vessieos_steam_lib_v2';
 const STEAM_SRC_KEY='vessieos_steam_sources_v1';
 function buildBaseSteamLibrary(){
@@ -1442,20 +1387,23 @@ window.steamRender=function(view){
   const lib=steamLoad();
   if(view==='library'){
     const items=lib.slice().sort((a,b)=>(b.lastPlay||b.added)-(a.lastPlay||a.added));
-    main.innerHTML=`
-      <div class="st-hdr"><h2>BIBLIOTECA · ${items.length} jogos</h2>
-        <input class="st-srch" placeholder="Buscar na biblioteca..." oninput="steamFilter(this.value)"></div>
-      <div class="st-content">
-        ${items.length?`<div class="st-grid" id="st-grid">${items.map(g=>`
-          <div class="st-card" data-name="${(g.name||'').replace(/"/g,'&quot;')}" onclick="steamPlay('${g.id}')">
-            <button class="del" onclick="steamRemove('${g.id}',event)" title="Remover"><i class="fas fa-times"></i></button>
-            ${g.cover?`<img class="cv" src="${g.cover}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">`:''}
-            <div class="fb" style="${g.cover?'display:none':''}">${(g.name||'?')[0].toUpperCase()}</div>
-            <div class="meta"><div class="ttl">${g.name}</div><div class="sub"><span>${g.plays||0} sessões</span><span><i class="fab fa-steam"></i></span></div></div>
-          </div>`).join('')}</div>`:`
-          <div class="st-empty"><i class="fas fa-gamepad"></i><div>Sua biblioteca está vazia</div>
-          <div style="margin-top:8px;font-size:.82rem">Vá em <b>LOJA</b> e colete jogos automaticamente</div></div>`}
-      </div>`;
+    let html='<div class="st-hdr"><h2>BIBLIOTECA · '+items.length+' jogos</h2><input class="st-srch" placeholder="Buscar na biblioteca..." oninput="steamFilter(this.value)"></div><div class="st-content">';
+    if(items.length){
+      html+='<div class="st-grid" id="st-grid">';
+      items.forEach(function(g){
+        html+='<div class="st-card" data-name="'+(g.name||'').replace(/"/g,'&quot;')+'" onclick="steamPlay(\''+g.id+'\')">';
+        html+='<button class="del" onclick="steamRemove(\''+g.id+'\',event)" title="Remover"><i class="fas fa-times"></i></button>';
+        if(g.cover){html+='<img class="cv" src="'+g.cover+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt="">';}
+        else{html+='<div class="fb">'+(g.name||'?')[0].toUpperCase()+'</div>';}
+        html+='<div class="meta"><div class="ttl">'+g.name+'</div><div class="sub"><span>'+ (g.plays||0) +' sessões</span><span><i class="fab fa-steam"></i></span></div></div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }else{
+      html+='<div class="st-empty"><i class="fas fa-gamepad"></i><div>Sua biblioteca está vazia</div><div style="margin-top:8px;font-size:.82rem">Vá em <b>LOJA</b> e colete jogos automaticamente</div></div>';
+    }
+    html+='</div>';
+    main.innerHTML=html;
   } else if(view==='store'){
     const srcs=steamSources();
     main.innerHTML=`
@@ -1539,9 +1487,6 @@ function openGames(){
 window.launchGame=function(url,name){return createWin(name,'<i class="fab fa-steam"></i>',`<iframe src="${url}" style="border:none;width:100%;height:100%;border-radius:0" allow="fullscreen;autoplay" title="${name}"></iframe>`,880,620);};
 window.filterGames=function(q){document.querySelectorAll('#games-grid .gm').forEach(g=>{g.style.display=g.querySelector('span').textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});};
 
-// ============================================================
-//  BROWSER
-// ============================================================
 function openBrowser(){
   const win=createWin('Chrome','🌐',`
     <div class="brow">
@@ -1565,17 +1510,11 @@ function openBrowser(){
 
 window.navTo=function(inp){let url=inp.value.trim();if(!url.startsWith('http'))url='https://'+url;const frame=inp.closest('.brow').querySelector('.brow-frame');if(frame){frame.src=url;toast('Navegando...');}};
 
-// ============================================================
-//  NOTEPAD
-// ============================================================
 function openNotepad(){return openNotepadWithContent('Bloco de Notas','');}
 window.saveNotepad=function(btn){const text=btn.closest('.npad').querySelector('.npad-area').value;const blob=new Blob([text],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='documento.txt';a.click();toast('Arquivo salvo! 💾','success');};
 window.copyNotepad=function(btn){const text=btn.closest('.npad').querySelector('.npad-area').value;navigator.clipboard.writeText(text).then(()=>toast('Copiado! 📋','success'));};
 window.updateWC=function(ta,id){const wc=ta.value.trim().split(/\s+/).filter(w=>w).length;const el=document.getElementById(`wc-${id}`);if(el)el.textContent=`${wc} palavras`;};
 
-// ============================================================
-//  CALCULATOR
-// ============================================================
 function openCalc(){
   const win=createWin('Calculadora','🔢',`
     <div class="calc">
@@ -1605,9 +1544,6 @@ function openCalc(){
   return win;
 }
 
-// ============================================================
-//  TERMINAL
-// ============================================================
 function openTerminal(){
   const win=createWin('Terminal','💻',`
     <div class="term">
@@ -1657,9 +1593,6 @@ function openTerminal(){
   return win;
 }
 
-// ============================================================
-//  SETTINGS
-// ============================================================
 function openSettings(){
   return createWin('Configurações','⚙️',`
     <div class="sett">
@@ -1754,9 +1687,6 @@ window.applyTheme=function(name,c1,c2,c3,el){const r=document.documentElement.st
 (function(){try{const t=JSON.parse(localStorage.getItem('vos-theme')||'null');if(t)applyTheme(t.name,t.c1,t.c2,t.c3,null);}catch(_){}})();
 window.toggleDark=function(inp){document.body.style.filter=inp.checked?'':'invert(1) hue-rotate(180deg)';};
 
-// ============================================================
-//  MUSIC PLAYER
-// ============================================================
 function openMusic(){
   const win=createWin('Music Player','🎵',`
     <div class="mplayer">
@@ -1816,9 +1746,6 @@ function updateMusicUI(){
   if(t)t.textContent=tr.t;if(a)a.textContent=tr.a;if(d)d.textContent=fmtTime(tr.dur);
 }
 
-// ============================================================
-//  CAMERA
-// ============================================================
 function openCamera(){
   return createWin('Câmera','📷',`
     <div style="display:flex;flex-direction:column;height:100%;align-items:center;justify-content:center;background:#050508;gap:16px;padding:20px">
@@ -1838,9 +1765,6 @@ window.startCam=async function(){try{camStream=await navigator.mediaDevices.getU
 window.stopCam=function(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}const v=document.getElementById('cam-video');if(v)v.srcObject=null;};
 window.snapPhoto=function(){const v=document.getElementById('cam-video');const c=document.getElementById('cam-canvas');if(!v||!c)return;c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);const a=document.createElement('a');a.download='foto.png';a.href=c.toDataURL();a.click();toast('Foto salva! 📸','success');};
 
-// ============================================================
-//  CONTEXT MENU
-// ============================================================
 document.getElementById('desktop').addEventListener('contextmenu',e=>{
   if(e.target.closest('.win')||e.target.closest('#tb'))return;
   e.preventDefault();const ctx=document.getElementById('ctx');ctx.style.display='block';
@@ -1918,16 +1842,12 @@ document.addEventListener('keydown',e=>{
   if(secretBuf.includes('veesie')){secretBuf='';document.getElementById('eg').style.display='flex';setTimeout(()=>document.getElementById('eg').style.display='none',4000);toast('🎉 Easter Egg ativado! VEESIE!','success');}
 });
 
-
-// ============================================================
 //  ╔══════════════════════════════════════════════════════╗
 //  ║  VESSIEOS ULTRA · MEGA ENHANCEMENT MODULE v4.0       ║
 //  ║  Right-click submenus · Icon sizes · Trash · VMs     ║
 //  ║  Palette extraction · Adaptive taskbar · Snap grid   ║
 //  ╚══════════════════════════════════════════════════════╝
-// ============================================================
 (function ultra(){
-  // ---------- INJECT STYLES ----------
   const css = document.createElement('style');
   css.textContent = `
   /* CONTEXT MENU SUBMENU */
@@ -1990,7 +1910,6 @@ document.addEventListener('keydown',e=>{
   `;
   document.head.appendChild(css);
 
-  // ---------- STATE ----------
   const LS = {
     sz:   ()=>localStorage.getItem('vos_icon_sz')||'m',
     setSz:v=>localStorage.setItem('vos_icon_sz',v),
@@ -2013,7 +1932,6 @@ document.addEventListener('keydown',e=>{
   };
   const SZ_PX = {s:{w:80,h:80}, m:{w:100,h:110}, l:{w:130,h:140}, xl:{w:160,h:170}};
 
-  // ---------- DESKTOP APPS LIST ----------
   const BASE_DESKTOP_APPS = [
     {id:'vessie',    n:'Vessie IA',   ic:'fas fa-heart',         bg:'linear-gradient(135deg,#c46fff,#7a3eb8)'},
     {id:'dashboard', n:'Dashboard',   ic:'fas fa-chart-line',    bg:'linear-gradient(135deg,#36d1dc,#5b86e5)'},
@@ -2044,7 +1962,6 @@ document.addEventListener('keydown',e=>{
     return list;
   }
 
-  // ---------- REDEFINE renderDesktop (adaptive sizes, snap, persisted pos) ----------
   window.renderDesktop = function(){
     const area = document.getElementById('icons-area');
     if(!area) return;
@@ -2122,7 +2039,6 @@ document.addEventListener('keydown',e=>{
     });
   }
 
-  // ---------- DESKTOP CONTEXT MENU (rebuilt with submenus) ----------
   const desktop = document.getElementById('desktop');
   const oldCtx = document.getElementById('ctx');
   if(oldCtx) oldCtx.remove();
@@ -2257,7 +2173,6 @@ document.addEventListener('keydown',e=>{
     toast('"'+o.n+'" criado no desktop','success');
   }
 
-  // ---------- PER-ICON CONTEXT MENU ----------
   function showIconCtx(x,y,app){
     ctx.innerHTML = `
       <div class="cti" data-i="open"><i class="fas fa-play"></i> Abrir</div>
@@ -2337,7 +2252,6 @@ document.addEventListener('keydown',e=>{
   // Apply name overrides from rename
   try{ const ov=JSON.parse(localStorage.getItem('vos_icon_names')||'{}'); BASE_DESKTOP_APPS.forEach(b=>{ if(ov[b.id]) b.n=ov[b.id]; }); }catch{}
 
-  // ---------- WALLPAPER NEXT + PALETTE EXTRACTION ----------
   let wallIdx = 0;
   window.nextWall = function(){
     if(typeof WALLS==='undefined' || !WALLS.length) return;
@@ -2389,7 +2303,6 @@ document.addEventListener('keydown',e=>{
   // Run once on boot if wallpaper already set
   setTimeout(()=>{ if(typeof S!=='undefined' && S.wallpaper) extractPalette(S.wallpaper); }, 1200);
 
-  // ---------- PATCH openApp TO HANDLE NEW APPS + CUSTOM ICONS ----------
   const _origOpen = window.openApp;
   window.openApp = function(id){
     // custom icon shortcuts
@@ -2408,7 +2321,6 @@ document.addEventListener('keydown',e=>{
     return _origOpen(id);
   };
 
-  // ---------- TRASH APP ----------
   function openTrash(){
     const items = LS.trash();
     const win = createWin('Lixeira','<i class="fas fa-trash" style="color:#9ecbff"></i>', `
@@ -2476,7 +2388,6 @@ document.addEventListener('keydown',e=>{
     });
   }
 
-  // ---------- VIRTUAL MACHINES APP ----------
   const VMS = [
     {cat:'Windows', items:[
       {id:'win11',n:'Windows 11 (Web Demo)',ic:'fab fa-windows',desc:'Emulação Windows 11 via web — interface completa',url:'https://win11.blueedge.me/'},
@@ -2559,7 +2470,6 @@ document.addEventListener('keydown',e=>{
     };
   }
 
-  // ---------- TASKBAR SELECTION RECTANGLE ----------
   let selStart=null;
   const selRect=document.createElement('div'); selRect.id='selrect';
   desktop.appendChild(selRect);
@@ -2583,7 +2493,6 @@ document.addEventListener('keydown',e=>{
   });
   window.addEventListener('mouseup', ()=>{ selStart=null; selRect.style.display='none'; });
 
-  // ---------- KEYBOARD SHORTCUTS ----------
   document.addEventListener('keydown', e=>{
     if(e.key==='Delete'){
       const sels = document.querySelectorAll('.di.sel');
@@ -2603,13 +2512,10 @@ document.addEventListener('keydown',e=>{
     }
   });
 
-  // ---------- INITIAL RENDER ----------
   // re-render after a tick to apply if desktop is already shown
   setTimeout(()=>{ if(document.getElementById('desktop').style.display!=='none') renderDesktop(); }, 200);
 
   console.log('%c💜 VessieOS Ultra v4.0 loaded','background:linear-gradient(90deg,#c46fff,#7a3eb8);color:#fff;padding:6px 14px;border-radius:6px;font-weight:bold');
-})();
-
 /* ============================================================
    ULTRA POLISH v5 · Real-app UI + Theme grid + Multi-area Snap
    ============================================================ */
@@ -2732,7 +2638,6 @@ document.addEventListener('keydown',e=>{
   `;
   document.head.appendChild(css);
 
-  // ---------- SNAP OVERLAY ----------
   const ov = document.createElement('div'); ov.id='snap-ov';
   const TH = 52;
   const mkZone = (l,t,w,h)=>{const z=document.createElement('div');z.className='snap-zone';z.style.cssText=`left:${l};top:${t};width:${w};height:${h}`;ov.appendChild(z);return z;};
@@ -2741,7 +2646,6 @@ document.addEventListener('keydown',e=>{
   const zT = mkZone('6px','6px','calc(100vw - 12px)',`calc(100vh - ${TH+12}px)`);
   document.body.appendChild(ov);
 
-  // snap functions
   function snapWin(win, side){
     if(!win) return;
     win.classList.remove('maximized');
@@ -2757,7 +2661,6 @@ document.addEventListener('keydown',e=>{
     setTimeout(()=>{win.style.transition='';},220);
   }
 
-  // Drag-to-edge: monitor mouse during drag of any .wh
   let dragWin=null, hovering=null;
   document.addEventListener('mousedown',(e)=>{
     const hdr=e.target.closest('.wh');
@@ -2781,7 +2684,6 @@ document.addEventListener('keydown',e=>{
     ov.classList.remove('show');
   },true);
 
-  // ---------- KEYBOARD: Win+Arrow snap (Alt+Arrow as alt) ----------
   function focusedWin(){return document.querySelector('.win.focused')||document.querySelectorAll('.win:not(.minimized)')[document.querySelectorAll('.win:not(.minimized)').length-1];}
   document.addEventListener('keydown',(e)=>{
     const mod = e.metaKey || e.altKey;
@@ -2793,7 +2695,6 @@ document.addEventListener('keydown',e=>{
     snapWin(w, map[e.key]);
   });
 
-  // ---------- SNAP HINT (shows briefly first time a window opens) ----------
   const hint = document.createElement('div'); hint.id='snap-hint';
   hint.innerHTML='💡 Arraste para a borda ou use <kbd>Alt</kbd>+<kbd>←→↑</kbd> para dividir a tela';
   document.body.appendChild(hint);
