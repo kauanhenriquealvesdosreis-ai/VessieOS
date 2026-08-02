@@ -1387,20 +1387,23 @@ window.steamRender=function(view){
   const lib=steamLoad();
   if(view==='library'){
     const items=lib.slice().sort((a,b)=>(b.lastPlay||b.added)-(a.lastPlay||a.added));
-    main.innerHTML=`
-      <div class="st-hdr"><h2>BIBLIOTECA · ${items.length} jogos</h2>
-        <input class="st-srch" placeholder="Buscar na biblioteca..." oninput="steamFilter(this.value)"></div>
-      <div class="st-content">
-        ${items.length?`<div class="st-grid" id="st-grid">${items.map(g=>`
-          <div class="st-card" data-name="${(g.name||'').replace(/"/g,'&quot;')}" onclick="steamPlay('${g.id}')">
-            <button class="del" onclick="steamRemove('${g.id}',event)" title="Remover"><i class="fas fa-times"></i></button>
-            ${g.cover?`<img class="cv" src="${g.cover}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">`:''}
-            <div class="fb" style="${g.cover?'display:none':''}">${(g.name||'?')[0].toUpperCase()}</div>
-            <div class="meta"><div class="ttl">${g.name}</div><div class="sub"><span>${g.plays||0} sessões</span><span><i class="fab fa-steam"></i></span></div></div>
-          </div>`).join('')}</div>`:`
-          <div class="st-empty"><i class="fas fa-gamepad"></i><div>Sua biblioteca está vazia</div>
-          <div style="margin-top:8px;font-size:.82rem">Vá em <b>LOJA</b> e colete jogos automaticamente</div></div>`}
-      </div>`;
+    let html='<div class="st-hdr"><h2>BIBLIOTECA · '+items.length+' jogos</h2><input class="st-srch" placeholder="Buscar na biblioteca..." oninput="steamFilter(this.value)"></div><div class="st-content">';
+    if(items.length){
+      html+='<div class="st-grid" id="st-grid">';
+      items.forEach(function(g){
+        html+='<div class="st-card" data-name="'+(g.name||'').replace(/"/g,'&quot;')+'" onclick="steamPlay(\''+g.id+'\')">';
+        html+='<button class="del" onclick="steamRemove(\''+g.id+'\',event)" title="Remover"><i class="fas fa-times"></i></button>';
+        if(g.cover){html+='<img class="cv" src="'+g.cover+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt="">';}
+        else{html+='<div class="fb">'+(g.name||'?')[0].toUpperCase()+'</div>';}
+        html+='<div class="meta"><div class="ttl">'+g.name+'</div><div class="sub"><span>'+ (g.plays||0) +' sessões</span><span><i class="fab fa-steam"></i></span></div></div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }else{
+      html+='<div class="st-empty"><i class="fas fa-gamepad"></i><div>Sua biblioteca está vazia</div><div style="margin-top:8px;font-size:.82rem">Vá em <b>LOJA</b> e colete jogos automaticamente</div></div>';
+    }
+    html+='</div>';
+    main.innerHTML=html;
   } else if(view==='store'){
     const srcs=steamSources();
     main.innerHTML=`
