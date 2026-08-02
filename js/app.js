@@ -2608,8 +2608,6 @@ document.addEventListener('keydown',e=>{
   setTimeout(()=>{ if(document.getElementById('desktop').style.display!=='none') renderDesktop(); }, 200);
 
   console.log('%c💜 VessieOS Ultra v4.0 loaded','background:linear-gradient(90deg,#c46fff,#7a3eb8);color:#fff;padding:6px 14px;border-radius:6px;font-weight:bold');
-})();
-
 /* ============================================================
    ULTRA POLISH v5 · Real-app UI + Theme grid + Multi-area Snap
    ============================================================ */
